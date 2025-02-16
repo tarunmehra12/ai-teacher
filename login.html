@@ -52,56 +52,23 @@
         const auth = getAuth(app);
 
         // Login form handling
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const form = document.getElementById('loginForm');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const errorMessage = document.getElementById('errorMessage');
-            const submitButton = form.querySelector('button[type="submit"]');
-
-            const email = document.getElementById('loginEmail').value.trim();
+            
+            const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-
-            // Show loading state
-            submitButton.disabled = true;
-            loadingMessage.style.display = 'flex';
-            errorMessage.textContent = '';
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                
-                // Show success message
-                loadingMessage.innerHTML = '<span class="success-message">✓ Login successful! Redirecting...</span>';
-                
-                // Redirect to main site
-                setTimeout(() => {
-                    window.location.href = 'main site/main.html';
-                }, 1000);
-
+                // Redirect to main.html after successful login
+                window.location.href = 'main.html';
             } catch (error) {
-                // Hide loading and show error
-                loadingMessage.style.display = 'none';
-                
-                // Show user-friendly error message
-                switch (error.code) {
-                    case 'auth/invalid-credential':
-                    case 'auth/wrong-password':
-                    case 'auth/user-not-found':
-                        errorMessage.textContent = 'Invalid email or password. Please check your credentials and try again.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage.textContent = 'Please enter a valid email address.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage.textContent = 'Too many failed attempts. Please try again later.';
-                        break;
-                    default:
-                        errorMessage.textContent = 'An error occurred. Please try again.';
-                        console.error('Login error:', error);
-                }
-                
-                submitButton.disabled = false;
-                document.getElementById('loginPassword').value = '';
+                console.error('Login error:', error);
+                errorMessage.textContent = 'Invalid email or password';
+                errorMessage.style.display = 'block';
             }
         });
     </script>

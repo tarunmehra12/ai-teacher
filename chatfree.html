@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechTeach AI - Free Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0f0f17;
+            --secondary-color: #1a1b26;
+            --accent-color: #7289da;
+            --accent-light: #8ea1e1;
+            --text-color: #ffffff;
+            --bot-message-bg: #2f3136;
+            --user-message-bg: #404eed;
+            --input-bg: #40414f;
+            --sidebar-color: #2f3136;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        /* Header Styles */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .app-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            text-shadow: none;
+        }
+
+        .app-subtitle {
+            font-size: 0.75rem;
+            color: #b9bbbe;
+        }
+
+        /* Login Button */
+        .login-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: transparent;
+            color: #dcddde;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .login-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* Chat Area */
+        .chat-main {
+            height: calc(100vh - 72px);
+            display: flex;
+            flex-direction: column;
+            background: var(--secondary-color);
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            scroll-behavior: smooth;
+            margin-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Message Styles */
+        .user-message, .bot-message {
+            padding: 1rem 1.2rem;
+            margin: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            max-width: 85%;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: var(--user-message-bg);
+            color: white;
+            margin-left: auto;
+            margin-right: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .bot-message {
+            background: var(--bot-message-bg);
+            color: #dcddde;
+            margin-right: auto;
+            margin-left: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: left;
+        }
+
+        /* Input Area */
+        .chat-input {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: var(--primary-color);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .input-container {
+            max-width: 768px;
+            margin: 0 auto;
+            display: flex;
+            background: var(--bot-message-bg);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.75rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--accent-color);
+        }
+
+        #user-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #dcddde;
+            font-size: 0.95rem;
+            padding: 0 0.5rem;
+            outline: none;
+        }
+
+        #user-input::placeholder {
+            color: #72767d;
+        }
+
+        .send-button {
+            background: transparent;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+
+        .send-button:hover {
+            opacity: 1;
+            color: var(--accent-light);
+        }
+
+        /* Question Counter */
+        .question-counter {
+            position: fixed;
+            top: 4.5rem;
+            right: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            color: #dcddde;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 100;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 1rem;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+            }
+
+            .user-message, .bot-message {
+                max-width: 90%;
+                padding: 1rem;
+            }
+
+            .chat-input {
+                padding: 1rem;
+            }
+
+            .input-container {
+                margin: 0 0.5rem;
+            }
+
+            .login-button span {
+                display: none;
+            }
+
+            .question-counter {
+                top: auto;
+                bottom: 5rem;
+                right: 1rem;
+            }
+        }
+
+        /* Login Popup Styles */
+        .login-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-popup.show {
+            opacity: 1;
+        }
+
+        .popup-content {
+            background: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-content h2 {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .popup-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .popup-content ul {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .popup-content li {
+            color: #dcddde;
+            margin: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .popup-button {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .popup-button.login {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .popup-button.register {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .popup-button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="header-title">
+                <h1 class="app-title">TechTeach AI</h1>
+                <span class="app-subtitle">Your Programming Assistant</span>
+            </div>
+            <a href="login.html" class="login-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                <span>Login for Full Access</span>
+            </a>
+        </header>
+
+        <main class="chat-main">
+            <div id="chat-content" class="chat-messages">
+                <!-- Messages will be added here -->
+            </div>
+
+            <!-- Question Counter -->
+            <div class="question-counter">
+                Questions remaining: <span id="question-count">5</span>
+            </div>
+
+            <!-- Input Form -->
+            <form id="chat-form" class="chat-input">
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="user-input" 
+                        placeholder="Ask me anything about programming..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-button">
+                        <svg stroke="currentColor" fill="none" viewBox="0 0 24 24" height="24" width="24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Add this HTML for the popup right after the chat-container div -->
+    <div id="login-popup" class="login-popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Continue Learning with Full Access</h2>
+            <p>You've used all your free questions. Create an account to get:</p>
+            <ul>
+                <li>✨ Unlimited questions</li>
+                <li>💾 Save your chat history</li>
+                <li>🚀 Advanced features</li>
+                <li>📚 Personalized learning</li>
+            </ul>
+            <div class="popup-buttons">
+                <a href="login.html" class="popup-button login">Login</a>
+                <a href="register.html" class="popup-button register">Register Now</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this script -->
+    <script>
+        // DOM Elements
+        const chatContent = document.getElementById("chat-content");
+        const chatForm = document.getElementById("chat-form");
+        const userInput = document.getElementById("user-input");
+        const questionCounter = document.getElementById("question-count");
+
+        // Question limit
+        let questionsRemaining = 5;
+
+        // Configuration
+        const API_CONFIG = {
+            URL: "https://backend.buildpicoapps.com/aero/run/llm-api",
+            API_KEY: "v1-Z0FBQUFBQm5IZkJDMlNyYUVUTjIyZVN3UWFNX3BFTU85SWpCM2NUMUk3T2dxejhLSzBhNWNMMXNzZlp3c09BSTR6YW1Sc1BmdGNTVk1GY0liT1RoWDZZX1lNZlZ0Z1dqd3c9PQ=="
+        };
+
+        // Assistant configuration
+        const ASSISTANT_PROMPT = `I am TechTeach AI, a programming teacher.
+
+        I can help with:
+        • Programming in Python, Java, JavaScript, C++
+        • Web Development
+        • Data Structures & Algorithms
+        • System Design
+        • Code Review & Debugging
+
+        I provide technical responses with code examples and explanations.`;
+
+        // Append message to chat
+        function appendMessage(message, type) {
+            const messageElement = document.createElement("div");
+            messageElement.textContent = message;
+            messageElement.classList.add(`${type}-message`);
+            chatContent.appendChild(messageElement);
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+
+        // Fetch AI response
+        async function fetchResponse(userMessage) {
+            try {
+                const response = await fetch(`${API_CONFIG.URL}?pk=${API_CONFIG.API_KEY}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        prompt: `${ASSISTANT_PROMPT}\nUser: ${userMessage}\nAI Teacher:`
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.status === "success" ? data.text : "I apologize, but I'm having trouble processing your request. Please try again.";
+            } catch (error) {
+                console.error("Error in fetchResponse:", error);
+                return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
+            }
+        }
+
+        // Handle chat form submission
+        chatForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (questionsRemaining <= 0) {
+                showLoginPopup();
+                return;
+            }
+
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            // Display user message
+            appendMessage(userMessage, "user");
+            userInput.value = "";
+
+            // Update question counter
+            questionsRemaining--;
+            questionCounter.textContent = questionsRemaining;
+
+            // Show loading message
+            appendMessage("Thinking...", "bot");
+
+            try {
+                // Get AI response
+                const botResponse = await fetchResponse(userMessage);
+                
+                // Remove loading message
+                chatContent.removeChild(chatContent.lastChild);
+                
+                // Display bot response
+                appendMessage(botResponse, "bot");
+
+                if (questionsRemaining <= 0) {
+                    setTimeout(showLoginPopup, 1500); // Show popup after last response
+                }
+            } catch (error) {
+                console.error("Error getting response:", error);
+                chatContent.removeChild(chatContent.lastChild);
+                appendMessage("Sorry, I encountered an error. Please try again.", "bot");
+            }
+        });
+
+        // Initialize with welcome message
+        window.addEventListener('load', () => {
+            const welcomeMessage = `Welcome to TechTeach AI Free Chat!
+
+You have ${questionsRemaining} free questions to try out our service.
+
+How can I help you with programming today?`;
+            appendMessage(welcomeMessage, "bot");
+        });
+
+        // Add this function to show popup
+        function showLoginPopup() {
+            const popup = document.getElementById('login-popup');
+            popup.style.display = 'flex';
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+    </script>
+</body>
+</html> 
